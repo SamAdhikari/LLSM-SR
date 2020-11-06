@@ -22,9 +22,9 @@ BetaupdateRWCOVSR <-
          #   print(llikNew)
          #  print(llikAll[tt])
             #log prior at current value
-            priorOld = betaprior(Beta[kk,tt], MuBeta, VarBeta)
+            priorOld = betaprior(Beta[kk,tt], MuBeta[kk], VarBeta)
             #log prior at new value
-            priorNew = betaprior(BetaNew[kk],MuBeta,VarBeta)
+            priorNew = betaprior(BetaNew[kk],MuBeta[kk],VarBeta)
             #logratio
             logratio = llikNew - llikAll[tt] + priorNew - priorOld
             if(is.finite(logratio)){

@@ -1,5 +1,6 @@
 MCMCsampleRWCOVSR <-
-function(niter,Y,Z,X,Intercept,Beta,SS,RR,TT,dd,nn,pp,MuInt,VarInt,VarZ,
+function(niter,Y,Z,X,Intercept,Beta,SS,RR,TT,dd,nn,pp,MuBeta, 
+         MuInt,VarInt,VarZ,VarSS, VarRR, priorV,
                       accZ,accInt,accBeta,accSS,accRR,
          tuneBeta,tuneZ,tuneInt,tuneSS,tuneRR,A,B,gList)
 {
@@ -36,13 +37,13 @@ function(niter,Y,Z,X,Intercept,Beta,SS,RR,TT,dd,nn,pp,MuInt,VarInt,VarZ,
         accZ = Zupdt$acc
      #  print(Z)
      SSupdt = SSupdate(SS=SS,RR=RR,YY=Y,ZZ=Z, XX=X,TT=TT,Beta=Beta,intercept=Intercept,tune=tuneSS,acc=accSS,
-     nn=nn,pp=pp,dd=dd)
+     nn=nn,pp=pp,dd=dd, priorVar = VarSS)
      SS = SSupdt$SS
      accSS = SSupdt$acc
      oldlikelihood = SSupdt$llik
      
      RRupdt = RRupdate(SS=SS,RR=RR,YY=Y,ZZ=Z,XX=X,TT=TT,Beta=Beta,intercept=Intercept,tune=tuneRR,acc=accRR,
-     nn=nn,pp=pp,dd=dd,oldlikelihood=oldlikelihood)
+     nn=nn,pp=pp,dd=dd,oldlikelihood=oldlikelihood, priorVar = VarRR)
      RR = RRupdt$RR
      accRR = RRupdt$acc
         #update beta 
@@ -54,8 +55,8 @@ function(niter,Y,Z,X,Intercept,Beta,SS,RR,TT,dd,nn,pp,MuInt,VarInt,VarZ,
             return(loglik)})
 	
         Betaupdt = BetaupdateRWCOVSR(Intercept=Intercept,llikAll=llikBeta,
-                                   MuBeta=MuInt,VarBeta=VarInt,
-                              tune=tuneBeta,acc=accBeta,Y=Y,Z=Z,TT=TT,
+                                   MuBeta = MuBeta, VarBeta = VarInt,
+                              tune = tuneBeta, acc = accBeta,Y=Y,Z=Z,TT=TT,
                               X=X,Beta=Beta,nn=nn,dd=dd,pp=pp,SS=SS,RR=RR)
         Beta = Betaupdt$Beta
         accBeta = Betaupdt$acc
@@ -76,8 +77,9 @@ function(niter,Y,Z,X,Intercept,Beta,SS,RR,TT,dd,nn,pp,MuInt,VarInt,VarZ,
          accInt = Intupdt$acc
          llikAll = Intupdt$llikAll
         #Update Sender and Receiver effects
-        
-
+         MuBeta = sapply(1:pp, function(x) updateMu(betaK = Beta[x, ], TT = TT, 
+                                                   priorM = 0, priorV = priorV, SigmaSq = VarInt))
+          
         #        VarZ = SigmaUpdateRW(Aprior=A,Bprior=B,Z=Z,nn=nn,dd=dd,TT=TT,gList=gList)
         #STORE UPDATES
         SSFinal[,iter] = SS[,2]
@@ -88,6 +90,14 @@ function(niter,Y,Z,X,Intercept,Beta,SS,RR,TT,dd,nn,pp,MuInt,VarInt,VarZ,
         Likelihood[iter] = llikAll
         ZVarFinal[[iter]] = VarZ	
         print(iter)
+        
+        ##save the chain after every 10,000 draws
+        if(iter == 5000| iter == 10000 | iter == 20000 | iter == 30000 |iter == 60000){
+            draws = list(Z=ZFinal,Intercept=InterceptFinal,Beta=BetaFinal,RR=RRFinal,SS=SSFinal,
+                        Likelihood=Likelihood,VarZ=ZVarFinal )
+            save(draws, file = paste('PartialChain',iter,'.RData',sep = ''))
+        }
+        
     }
     draws = list(Z=ZFinal,Intercept=InterceptFinal,Beta=BetaFinal,RR=RRFinal,SS=SSFinal,
                  Likelihood=Likelihood,VarZ=ZVarFinal )

@@ -19,6 +19,7 @@ source('SigmaUpdateRW.R')
 source('adjust.my.tune.R')
 source('which.suck.R')
 sourceCpp('Likelihoods.cpp')
+source('updateMu.R')
 
 
 ##Function to generate networks
@@ -103,15 +104,6 @@ par(mfrow=c(2,3)); lapply(1:TT,function(x)plot.igraph(graph.adjacency(YY[[x]])))
 burnin = 500
 thin = 10
 niter = 10000
-
-dd = 2   
-priors =list()
-priors$MuBeta= 0 
-priors$VarBeta = 1000
-priors$VarZ = diag(10,dd)
-priors$A = 100
-priors$B = 150
-
 
 ptm = proc.time()
 LLSMfitRWCOVSR =  llsmRWCOVSR(Y=YY,X=XX,initialVals = NULL, 

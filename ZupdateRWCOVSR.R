@@ -19,7 +19,7 @@ function(Y,Z,TT,X,Intercept,Beta,dd,nn,pp,var,llikOld,acc,tune,SS,RR)
                 ZsmPrev = rep(0,dd)
                 prior1 = Zprior(Zsmt,ZsmPrev,var)                
                 #propose new vector
-                Znewsm = Zsmt+tune[[tt]][i]*rnorm(dd,0,1)  
+                Znewsm = Zsmt+ tune[[tt]][i]*rnorm(dd,0,1)
                 Znew[i,] = Znewsm
                 #llikNew = likelihoodiCovSR(ii=i,Y=Y[[tt]],XX=XX,
                  #     Z=Znew,intercept=Intercept,Beta=Beta[,tt],SS=SStt,RR=RRtt)

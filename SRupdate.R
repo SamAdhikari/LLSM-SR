@@ -1,6 +1,6 @@
 #Update sender and receiver effect for each individual 
 #by Metropolis Hastings algorithm
-SSupdate = function(SS,RR,YY,ZZ, XX,TT,Beta,intercept,tune,acc,nn,pp,dd){
+SSupdate = function(SS,RR,YY,ZZ, XX,TT,Beta,intercept,tune,acc,nn,pp,dd, priorVar){
     RRtt = list()
     nameList = list()
     for(tt in 1:TT){
@@ -33,7 +33,7 @@ SSupdate = function(SS,RR,YY,ZZ, XX,TT,Beta,intercept,tune,acc,nn,pp,dd){
         #        Zt=ZZ[[tt]],SS=SStt,RR=RRtt[[tt]],intercept=intercept,Beta=Beta[,tt]))
         #        }else(return(0)) }) )
         
-        oldprior = dnorm(SS[ii,2],0,1,log=TRUE)
+        oldprior = dnorm(SS[ii,2], 0, sqrt(priorVar), log=TRUE)
     
         newlikelihood =  sum(sapply(1:TT,function(tt){
             
@@ -44,7 +44,7 @@ SSupdate = function(SS,RR,YY,ZZ, XX,TT,Beta,intercept,tune,acc,nn,pp,dd){
                                       Zt=ZZ[[tt]],SS=NewSStt,RR=RRtt[[tt]],intercept=intercept,Beta=Beta[,tt]))
               
                }else(return(0))}))
-        newprior = dnorm(NewSS[ii,2],0,1,log=TRUE)
+        newprior = dnorm(NewSS[ii,2], 0, sqrt(priorVar), log=TRUE)
     
         logRatio = newlikelihood - oldlikelihood[ii] + newprior - oldprior
         if(is.finite(logRatio)){
@@ -61,7 +61,7 @@ SSupdate = function(SS,RR,YY,ZZ, XX,TT,Beta,intercept,tune,acc,nn,pp,dd){
     return(list(SS=SS,acc=acc,llik = oldlikelihood))
  }
 
-RRupdate = function(SS,RR,YY,ZZ,XX,TT,Beta,intercept,tune,acc,nn,pp,dd,oldlikelihood)
+RRupdate = function(SS,RR,YY,ZZ,XX,TT,Beta,intercept,tune,acc,nn,pp,dd,oldlikelihood, priorVar)
   {
     SStt = list()
     for(tt in 1:TT){
@@ -80,7 +80,7 @@ RRupdate = function(SS,RR,YY,ZZ,XX,TT,Beta,intercept,tune,acc,nn,pp,dd,oldlikeli
         #                              Zt=ZZ[[tt]],SS=SStt[[tt]],RR=RRtt,intercept=intercept,Beta=Beta[,tt]))
         #      }else(return(0))}))
         
-        oldprior = dnorm(RR[ii,2],0,1,log=TRUE)
+        oldprior = dnorm(RR[ii,2], 0, sqrt(priorVar), log=TRUE)
         
         newlikelihood =  sum(sapply(1:TT,function(tt){
             kk = which(rownames(ZZ[[tt]])==RR[ii,1])
@@ -90,7 +90,7 @@ RRupdate = function(SS,RR,YY,ZZ,XX,TT,Beta,intercept,tune,acc,nn,pp,dd,oldlikeli
                                       Zt=ZZ[[tt]],SS=SStt[[tt]],RR=NewRRtt,intercept=intercept,Beta=Beta[,tt]))
         }else(return(0))}))
         
-        newprior = dnorm(NewRR[ii,2],0,1,log=TRUE)
+        newprior = dnorm(NewRR[ii,2], 0, sqrt(priorVar), log=TRUE)
       #  print(newlikelihood)
       #  print(oldlikelihood)
         

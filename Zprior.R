@@ -1,5 +1,5 @@
 Zprior <-
 function(Z,MuZ,VarZ)
 {
-    return(dmvnorm(Z,MuZ,VarZ,log=TRUE))
+    return(dmvnorm(Z,mean = MuZ, sigma = VarZ,log=TRUE))
 }

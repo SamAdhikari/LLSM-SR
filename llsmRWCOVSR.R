@@ -44,6 +44,8 @@ function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL,
         return(Z0)})
     Z00 = lapply(1:TT,function(tt)C[[tt]]%*%Z0[[tt]])
  
+    print(Z00)
+    
     if(is.null(X)){
         XX= lapply(1:TT,function(x)array(0,dim=c(nn[x],nn[x],1))) 
      }else{
@@ -65,13 +67,19 @@ function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL,
         VarZ = diag(150,dd)
         A = 100
         B = 150
+        VarSS = 1
+        VarRR = 1
+        priorV = 1000
     }else{
         if(class(priors) != 'list')(stop("priors must be of class list, if not NULL"))
         MuInt = priors$MuBeta
         VarInt = priors$VarBeta
         VarZ = priors$VarZ
         A = priors$A
-        B = priors$B        
+        B = priors$B
+        VarSS = priors$VarSS
+        VarRR = priors$VarRR
+        priorV = priors$priorV
     }
     
     ##starting values
@@ -88,6 +96,7 @@ function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL,
         if(pp == 1){
             Beta0 = t(matrix(Beta0))
         }
+        MuBeta = rnorm(pp,0,1)
         uniqueName = unique(unlist(lapply(1:TT,function(tt) dimnames(Y[[tt]])[[1]])))
         SS0 =data.frame('Names'=(uniqueName),
                         'SS'= rnorm(length(uniqueName),0,1) )
@@ -102,6 +111,7 @@ function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL,
         Beta0 = initialVals$Beta
         SS0 = initialVals$SS0
         RR0 = initialVals$RR0
+        MuBeta = initialVals$MuBeta
         }
    
     ###tuning parameters#####
@@ -132,13 +142,19 @@ function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL,
         #  while(do.again ==1){
             print('Tuning the Sampler')
             for(counter in 1:a.number ){                
-                rslt = MCMCsampleRWCOVSR(niter = 700,Y=Y,Z=Z0,X=XX,Intercept=Intercept0,
-                                  Beta=Beta0,SS=SS0,RR=SS0,TT=TT,dd=dd,nn=nn,pp=pp,
-                                  MuInt=MuInt,VarInt=VarInt,
-                                  VarZ=VarZ,accZ=accZ,accInt=accInt,
-                                  accBeta=accBeta,accSS=accSS,accRR=accRR,
-                                  tuneBeta=tuneBeta,tuneRR=tuneRR,tuneSS=tuneSS,
-                                  tuneZ=tuneZ,tuneInt=tuneInt,A=A,B=B,gList=gList)
+                rslt = MCMCsampleRWCOVSR(niter = 700,Y=Y, Z = Z0, X = XX,
+                                         Intercept = Intercept0,
+                                  Beta = Beta0, SS = SS0, RR = RR0, 
+                                  TT = TT, dd = dd, nn = nn, pp = pp,
+                                  MuBeta = MuBeta,
+                                  MuInt = MuInt, VarInt = VarInt,
+                                  VarZ = VarZ, VarSS = VarSS, VarRR = VarRR,
+                                  priorV = priorV,
+                                  accZ = accZ, accInt = accInt,
+                                  accBeta = accBeta, accSS = accSS, accRR = accRR,
+                                  tuneBeta = tuneBeta, tuneRR = tuneRR, tuneSS = tuneSS,
+                                  tuneZ = tuneZ, tuneInt = tuneInt, 
+                                  A = A, B = B, gList=gList)
                 tuneZ = lapply(1:TT,function(x)adjust.my.tune(tuneZ[[x]],
                                                               rslt$acc$accZ[[x]],2))
                tuneInt = adjust.my.tune(tuneInt,rslt$acc$accInt, 1)
@@ -158,12 +174,17 @@ function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL,
     }
     
     rslt = MCMCsampleRWCOVSR(niter = niter,Y=Y,Z=Z0,X=XX,Intercept=Intercept0,
-                                       Beta=Beta0,SS=SS0,RR=SS0,TT=TT,dd=dd,nn=nn,pp=pp,
+                                       Beta=Beta0,SS=SS0, RR=RR0,
+                                      TT=TT,dd=dd,nn=nn,pp=pp,
+                                       MuBeta = MuBeta,
                                        MuInt=MuInt,VarInt=VarInt,
-                                       VarZ=VarZ,accZ=accZ,accInt=accInt,
+                                       VarZ=VarZ,VarSS = VarSS, VarRR = VarRR,
+                                       priorV = priorV,
+                                       accZ=accZ,accInt=accInt,
                                        accBeta=accBeta,accSS=accSS,accRR=accRR,
                                        tuneBeta=tuneBeta,tuneRR=tuneRR,tuneSS=tuneSS,
-                                       tuneZ=tuneZ,tuneInt=tuneInt,A=A,B=B,gList=gList) 
+                                       tuneZ=tuneZ,tuneInt=tuneInt,
+                             A=A,B=B,gList=gList) 
     ##Procrustean transformation of latent positions
     #     #######################################
 
